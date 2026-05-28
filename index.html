@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Danielle Angelo Malixi — General Virtual Assistant</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0a0e0d;
+      --bg-soft: #111715;
+      --card: #141b19;
+      --line: #243029;
+      --text: #e8efe9;
+      --text-soft: #9bb0a4;
+      --text-dim: #5e7064;
+      --accent: #6ee7a8;
+      --accent-dim: #3fae78;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.25;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 20%, transparent 75%);
+    }
+
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 14, 13, 0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .nav.scrolled { border-bottom-color: var(--line); }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      padding: 1.1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem; font-weight: 600; color: var(--text);
+      text-decoration: none; letter-spacing: -0.02em;
+    }
+    .nav-logo b { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.8rem; list-style: none; }
+    .nav-links a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem; color: var(--text-soft);
+      text-decoration: none; transition: color 0.2s ease;
+    }
+    .nav-links a::before { content: '// '; color: var(--text-dim); }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2; }
+
+    .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 7rem 2rem 4rem; max-width: 1100px; margin: 0 auto; position: relative; z-index: 2; }
+    .hero-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      color: var(--accent); margin-bottom: 1.5rem;
+      opacity: 0; animation: fade 0.8s ease 0.1s forwards;
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 8vw, 6rem); font-weight: 600;
+      line-height: 1.02; letter-spacing: -0.03em; margin-bottom: 1.5rem;
+      opacity: 0; animation: fade 0.8s ease 0.25s forwards;
+    }
+    .hero h1 b { color: var(--accent); font-weight: 600; }
+    .hero-role {
+      font-family: 'JetBrains Mono', monospace; font-size: clamp(0.9rem, 2vw, 1.15rem);
+      color: var(--text-soft); margin-bottom: 2rem;
+      opacity: 0; animation: fade 0.8s ease 0.4s forwards;
+    }
+    .hero-desc {
+      max-width: 40rem; font-size: clamp(1rem, 1.4vw, 1.12rem);
+      color: var(--text-soft); margin-bottom: 2.5rem; line-height: 1.75;
+      opacity: 0; animation: fade 0.8s ease 0.55s forwards;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; opacity: 0; animation: fade 0.8s ease 0.7s forwards; }
+    .btn {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+      padding: 0.85rem 1.5rem; text-decoration: none;
+      border-radius: 6px; transition: all 0.25s ease;
+    }
+    .btn-primary { background: var(--accent); color: #06120c; font-weight: 600; }
+    .btn-primary:hover { background: var(--accent-dim); transform: translateY(-2px); }
+    .btn-ghost { border: 1px solid var(--line); color: var(--text); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    @keyframes fade { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section { padding: 6rem 0; position: relative; z-index: 2; }
+    .section-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      color: var(--accent); margin-bottom: 0.8rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 600;
+      letter-spacing: -0.02em; margin-bottom: 3rem;
+    }
+
+    .about-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 4rem; }
+    @media (max-width: 800px) { .about-grid { grid-template-columns: 1fr; gap: 2.5rem; } }
+    .about p { color: var(--text-soft); font-size: 1.05rem; margin-bottom: 1.2rem; line-height: 1.8; }
+    .about p b { color: var(--text); font-weight: 500; }
+    .info-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1.8rem; }
+    .info-card h4 { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .info-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row span:first-child { color: var(--text-dim); }
+    .info-row span:last-child { color: var(--text); text-align: right; }
+
+    .timeline { display: grid; gap: 1.2rem; }
+    .tcard {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 10px; padding: 2rem;
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+    .tcard:hover { border-color: var(--accent-dim); transform: translateX(6px); }
+    .tcard-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .tcard h3 { font-size: 1.3rem; font-weight: 600; }
+    .tcard .when { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent); white-space: nowrap; }
+    .tcard .where { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.2rem; }
+    .tcard ul { list-style: none; }
+    .tcard li { color: var(--text-soft); font-size: 0.95rem; padding: 0.3rem 0 0.3rem 1.4rem; position: relative; }
+    .tcard li::before { content: '▹'; position: absolute; left: 0; color: var(--accent); }
+
+    .skill-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
+    .skill-block { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1.6rem; }
+    .skill-block h4 { font-size: 1.05rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .skill-block h4::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }
+    .skill-block ul { list-style: none; }
+    .skill-block li { color: var(--text-soft); font-size: 0.9rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
+    .skill-block li:last-child { border-bottom: none; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      background: var(--bg-soft); border: 1px solid var(--line);
+      color: var(--text-soft); padding: 0.5rem 0.9rem; border-radius: 6px;
+      transition: all 0.25s ease;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+    .tool-group { margin-bottom: 2rem; }
+    .tool-group h4 { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.9rem; }
+
+    .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .cert {
+      background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+      padding: 1.4rem 1.6rem; display: flex; align-items: center; gap: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    .cert:hover { border-color: var(--accent-dim); }
+    .cert .badge { width: 34px; height: 34px; border: 1px solid var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+    .cert p { font-size: 0.92rem; color: var(--text); line-height: 1.4; }
+
+    .contact { padding: 7rem 2rem; text-align: center; max-width: 1100px; margin: 0 auto; position: relative; z-index: 2; }
+    .contact .section-label { display: block; }
+    .contact h2 { font-size: clamp(2rem, 6vw, 4rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 2rem; }
+    .contact h2 b { color: var(--accent); }
+    .contact-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+
+    .footer { border-top: 1px solid var(--line); padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-dim); position: relative; z-index: 2; }
+    .footer b { color: var(--accent); }
+
+    @media (max-width: 640px) {
+      .nav-links { gap: 1rem; }
+      .nav-links a { font-size: 0.68rem; }
+      .nav-inner, .wrap { padding-left: 1.2rem; padding-right: 1.2rem; }
+      .hero { padding: 6rem 1.2rem 3rem; }
+      .section { padding: 4rem 0; }
+      .contact { padding: 5rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    const { useState, useEffect } = React;
+    const h = React.createElement;
+    const F = React.Fragment;
+
+    const NAV = ['home', 'about', 'experience', 'skills', 'tools', 'contact'];
+
+    const TIMELINE = [
+      {
+        title: 'City Scholar — Community Service Program',
+        when: '2023 — Present',
+        where: 'City of San Jose del Monte, Philippines',
+        bullets: [
+          'Assisted barangay office with administrative work and daily operations.',
+          'Prepared and edited documents using Microsoft Word and Excel.',
+          'Helped draft legal documents under supervision of senior staff.',
+          'Organized, sorted, and maintained official paperwork and records.',
+          'Coordinated city events and academic seminars as event coordinator.',
+          'Performed basic computer troubleshooting and technical assistance.',
+        ],
+      },
+    ];
+
+    const EDUCATION = [
+      {
+        title: 'BS in Information Technology',
+        when: '2023 — Present',
+        where: 'STI College SJDM',
+        bullets: ['Currently pursuing — focus on IT, databases, and systems.'],
+      },
+      {
+        title: 'Information & Communications Technology (ICT)',
+        when: '2021 — 2023',
+        where: 'Paradise Farms National High School',
+        bullets: ['Senior High School · Graduated With Honors.'],
+      },
+    ];
+
+    const SKILLS = [
+      { group: 'Administrative', items: ['File & task organization', 'Document preparation', 'Records management', 'Event coordination', 'Online research'] },
+      { group: 'Technical', items: ['SQL basics', 'MySQL database management', 'Google Analytics basics', 'Computer troubleshooting'] },
+      { group: 'Communication', items: ['Strong written English', 'Confident speaking', 'Public speaking trained', 'Clear coordination'] },
+    ];
+
+    const TOOLS = [
+      { group: 'Google Workspace', items: ['Gmail', 'Drive', 'Docs', 'Sheets', 'Calendar', 'Chat'] },
+      { group: 'Microsoft 365', items: ['Word', 'Excel', 'PowerPoint', 'Outlook', 'Teams', 'SharePoint', 'OneNote'] },
+      { group: 'Social Media', items: ['Facebook', 'Instagram', 'TikTok', 'YouTube', 'LinkedIn', 'X', 'Threads', 'Pinterest'] },
+      { group: 'Other Tools', items: ['MySQL', 'Google Data Analytics', 'Trello', 'Canva', 'ChatGPT'] },
+    ];
+
+    const CERTS = [
+      'Google Analytics Certification',
+      "Meet Canva's Visual Suite",
+      'Canva Essentials',
+      'With Honors — Senior High School',
+      'Youth Talks: Digital Pathways for Sustainable Development',
+      'Stand & Deliver: Public Speaking Workshop',
+      'Project Ladder: Sports Clinic (Swimming)',
+    ];
+
+    function Nav() {
+      const [active, setActive] = useState('home');
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const onScroll = () => {
+          setScrolled(window.scrollY > 30);
+          const pos = window.scrollY + 130;
+          for (const id of NAV) {
+            const el = document.getElementById(id);
+            if (el && el.offsetTop <= pos && el.offsetTop + el.offsetHeight > pos) { setActive(id); break; }
+          }
+        };
+        window.addEventListener('scroll', onScroll); onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
+      }, []);
+      return h('nav', { className: 'nav' + (scrolled ? ' scrolled' : '') },
+        h('div', { className: 'nav-inner' },
+          h('a', { href: '#home', className: 'nav-logo' }, 'danielle', h('b', null, '.malixi')),
+          h('ul', { className: 'nav-links' },
+            NAV.map(item => h('li', { key: item },
+              h('a', { href: '#' + item, className: active === item ? 'active' : '' }, item)
+            ))
+          )
+        )
+      );
+    }
+
+    function Hero() {
+      return h('section', { id: 'home', className: 'hero' },
+        h('p', { className: 'hero-tag' }, '> general virtual assistant'),
+        h('h1', null, 'Danielle Angelo', h('br'), h('b', null, 'Malixi')),
+        h('p', { className: 'hero-role' }, 'Admin Support · Document Management · Data & Research'),
+        h('p', { className: 'hero-desc' },
+          'Reliable and tech-savvy IT student providing efficient administrative support, social media assistance, research, and document management. Hands-on experience through community service, event coordination, and document preparation — focused on organized operations and timely delivery.'
+        ),
+        h('div', { className: 'hero-actions' },
+          h('a', { href: '#contact', className: 'btn btn-primary' }, 'Get in touch'),
+          h('a', { href: '#experience', className: 'btn btn-ghost' }, 'View experience')
+        )
+      );
+    }
+
+    function About() {
+      return h('section', { id: 'about', className: 'section' },
+        h('div', { className: 'wrap' },
+          h('p', { className: 'section-label' }, '01 // about'),
+          h('h2', { className: 'section-title' }, 'Who I am'),
+          h('div', { className: 'about-grid' },
+            h('div', { className: 'about' },
+              h('p', null, 'I\'m a ', h('b', null, 'BS Information Technology student'), ' at STI College SJDM with real office experience earned through my city\'s community service program.'),
+              h('p', null, 'My strength is keeping things ', h('b', null, 'organized and moving'), ' — from preparing documents and managing records to coordinating events and providing basic technical support. I\'m comfortable across Microsoft 365, Google Workspace, and database tools like MySQL.')
+            ),
+            h('div', { className: 'info-card' },
+              h('h4', null, 'profile.json'),
+              h('div', { className: 'info-row' }, h('span', null, 'location'), h('span', null, 'SJDM, Bulacan')),
+              h('div', { className: 'info-row' }, h('span', null, 'role'), h('span', null, 'Virtual Assistant')),
+              h('div', { className: 'info-row' }, h('span', null, 'status'), h('span', null, 'Open to work')),
+              h('div', { className: 'info-row' }, h('span', null, 'languages'), h('span', null, 'English, Filipino'))
+            )
+          )
+        )
+      );
+    }
+
+    function TList(items) {
+      return h('div', { className: 'timeline' },
+        items.map((t, i) =>
+          h('div', { className: 'tcard', key: i },
+            h('div', { className: 'tcard-top' },
+              h('h3', null, t.title),
+              h('span', { className: 'when' }, t.when)
+            ),
+            h('div', { className: 'where' }, t.where),
+            h('ul', null, t.bullets.map((b, j) => h('li', { key: j }, b)))
+          )
+        )
+      );
+    }
+
+    function Experience() {
+      return h('section', { id: 'experience', className: 'section' },
+        h('div', { className: 'wrap' },
+          h('p', { className: 'section-label' }, '02 // experience'),
+          h('h2', { className: 'section-title' }, 'Activities & involvement'),
+          TList(TIMELINE),
+          h('p', { className: 'section-label', style: { marginTop: '3rem' } }, '// education'),
+          h('h2', { className: 'section-title', style: { marginBottom: '2rem' } }, 'Education'),
+          TList(EDUCATION)
+        )
+      );
+    }
+
+    function Skills() {
+      return h('section', { id: 'skills', className: 'section' },
+        h('div', { className: 'wrap' },
+          h('p', { className: 'section-label' }, '03 // skills'),
+          h('h2', { className: 'section-title' }, 'What I bring'),
+          h('div', { className: 'skill-cols' },
+            SKILLS.map((s, i) =>
+              h('div', { className: 'skill-block', key: i },
+                h('h4', null, s.group),
+                h('ul', null, s.items.map((x, j) => h('li', { key: j }, x)))
+              )
+            )
+          )
+        )
+      );
+    }
+
+    function Tools() {
+      return h('section', { id: 'tools', className: 'section' },
+        h('div', { className: 'wrap' },
+          h('p', { className: 'section-label' }, '04 // stack'),
+          h('h2', { className: 'section-title' }, 'Tools & software'),
+          TOOLS.map((t, i) =>
+            h('div', { className: 'tool-group', key: i },
+              h('h4', null, t.group),
+              h('div', { className: 'chips' }, t.items.map((x, j) => h('span', { className: 'chip', key: j }, x)))
+            )
+          ),
+          h('p', { className: 'section-label', style: { marginTop: '3rem' } }, '// certificates'),
+          h('h2', { className: 'section-title', style: { marginBottom: '2rem' } }, 'Awards & certs'),
+          h('div', { className: 'cert-grid' },
+            CERTS.map((c, i) =>
+              h('div', { className: 'cert', key: i },
+                h('div', { className: 'badge' }, '✓'),
+                h('p', null, c)
+              )
+            )
+          )
+        )
+      );
+    }
+
+    function Contact() {
+      return h('section', { id: 'contact', className: 'contact' },
+        h('span', { className: 'section-label' }, '05 // contact'),
+        h('h2', null, 'Let\'s ', h('b', null, 'work together')),
+        h('div', { className: 'contact-links' },
+          h('a', { href: 'tel:09918642590', className: 'btn btn-primary' }, '0991 864 2590'),
+          h('a', { href: 'https://www.linkedin.com/in/danielle-angelo-malixi-427470390/', target: '_blank', rel: 'noopener', className: 'btn btn-ghost' }, 'LinkedIn')
+        )
+      );
+    }
+
+    function App() {
+      return h(F, null,
+        h(Nav), h(Hero), h(About), h(Experience), h(Skills), h(Tools), h(Contact),
+        h('footer', { className: 'footer' }, 'built with ', h('b', null, 'react'), ' · © 2026 danielle angelo malixi')
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+  </script>
+</body>
+</html>
