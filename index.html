@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Danielle Angelo Malixi — AI Automation & GoHighLevel Specialist</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <style>
+    /* ============================================================
+       Visual system: "workflow canvas"
+       Drawn from the tools this work is actually built in —
+       dot-grid editor backgrounds, node markers, connector lines,
+       monospace labels, and status pills.
+       ============================================================ */
+    :root {
+      --bg: #F6F7FA;
+      --surface: #FFFFFF;
+      --surface-2: #FBFCFE;
+      --ink: #0B1020;
+      --soft: #48526B;
+      --muted: #7A849B;
+      --line: #E2E7F0;
+      --line-strong: #CDD5E4;
+      --accent: #2B4EFF;
+      --accent-ink: #1E3ACC;
+      --accent-soft: #EDF1FF;
+      --live: #12B76A;
+      --r: 10px;
+      --grid: radial-gradient(circle, var(--line-strong) 1px, transparent 1.2px);
+
+      /* legacy aliases still referenced inline */
+      --card: var(--surface);
+      --text: var(--ink);
+      --text-soft: var(--soft);
+      --text-muted: var(--muted);
+      --accent-dark: var(--accent-ink);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+    .mono, .eyebrow {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+
+    /* ===== NAV ===== */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(246, 247, 250, 0.82);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .nav.scrolled { border-bottom-color: var(--line); }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex; justify-content: flex-end; align-items: center;
+    }
+    .nav-links { display: flex; gap: 1.9rem; list-style: none; }
+    .nav-links a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      padding: 0.3rem 0; position: relative;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-links a.active { color: var(--accent); }
+    .nav-links a.active::after {
+      content: ''; position: absolute;
+      left: 0; right: 0; bottom: -3px;
+      height: 2px; background: var(--accent);
+    }
+    @media (max-width: 720px) {
+      .nav-inner { padding: 0.8rem 1rem; justify-content: center; }
+      .nav-links { gap: 1rem; flex-wrap: wrap; justify-content: center; }
+      .nav-links a { font-size: 0.7rem; }
+    }
+
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 8rem 2rem 5rem;
+      max-width: 1120px; margin: 0 auto;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: var(--grid);
+      background-size: 24px 24px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, #000 20%, transparent 75%);
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, #000 20%, transparent 75%);
+      pointer-events: none; z-index: 0;
+    }
+    .hero-grid {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1.25fr 1fr;
+      gap: 4rem; align-items: center; width: 100%;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: var(--surface); color: var(--soft);
+      border: 1px solid var(--line);
+      padding: 0.4rem 0.85rem; border-radius: 999px;
+      margin-bottom: 1.6rem;
+    }
+    .hero-tag::before {
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--live); box-shadow: 0 0 0 3px rgba(18, 183, 106, 0.18);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(18, 183, 106, 0.18); }
+      50% { box-shadow: 0 0 0 6px rgba(18, 183, 106, 0.06); }
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.1rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-role {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem; color: var(--accent);
+      letter-spacing: 0.02em;
+      margin-top: 1.4rem;
+      padding-left: 1.1rem; position: relative;
+    }
+    .hero-role::before {
+      content: ''; position: absolute; left: 0; top: 0.6em;
+      width: 6px; height: 6px; background: var(--accent);
+    }
+    .hero-desc {
+      font-size: 1.05rem; color: var(--soft);
+      margin-top: 1.2rem; max-width: 34rem;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 2.4rem; }
+    .hero-photo-wrap { position: relative; justify-self: center; }
+    .hero-photo-deco {
+      position: absolute; inset: 0;
+      transform: translate(16px, 16px);
+      border: 1px solid var(--accent);
+      border-radius: var(--r);
+      background-image: var(--grid); background-size: 14px 14px;
+    }
+    .hero-photo {
+      position: relative; display: block;
+      width: min(330px, 70vw); aspect-ratio: 4 / 5;
+      object-fit: cover; object-position: top center;
+      border: 1px solid var(--line-strong); border-radius: var(--r);
+      background: var(--surface);
+    }
+    @media (max-width: 860px) {
+      .hero { padding-top: 9rem; }
+      .hero-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .hero-desc { max-width: none; }
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem; font-weight: 500; letter-spacing: 0.03em;
+      padding: 0.75rem 1.35rem; border-radius: var(--r);
+      text-decoration: none; cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-ink); transform: translateY(-2px); }
+    .btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 6.5rem 0; position: relative; }
+    .section-alt { background: var(--surface-2); border-block: 1px solid var(--line); }
+    .section-alt::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: var(--grid); background-size: 24px 24px;
+      opacity: 0.55; pointer-events: none;
+    }
+    .section-alt > * { position: relative; }
+    .section-header { text-align: center; margin-bottom: 3.5rem; }
+    .section-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 1rem;
+    }
+    .section-eyebrow::before {
+      content: ''; width: 6px; height: 6px;
+      background: var(--accent); transform: rotate(45deg);
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.9rem, 4vw, 2.7rem);
+      font-weight: 700; letter-spacing: -0.035em; line-height: 1.12;
+    }
+    .section-title em { font-style: normal; color: var(--accent); }
+    .section-sub {
+      color: var(--soft); font-size: 1rem;
+      max-width: 38rem; margin: 1rem auto 0;
+    }
+
+    /* ===== ABOUT ===== */
+    .about-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 3.5rem; align-items: start; }
+    .about-text p { color: var(--soft); margin-bottom: 1.1rem; font-size: 1rem; }
+    .about-text strong { color: var(--ink); font-weight: 600; }
+    .quickfacts {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 1.6rem;
+      position: relative;
+    }
+    .quickfacts::before {
+      content: ''; position: absolute; top: -1px; left: 1.6rem; right: 1.6rem;
+      height: 2px; background: var(--accent);
+    }
+    .quickfacts h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1.1rem; font-weight: 500;
+    }
+    .fact-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; padding: 0.7rem 0; border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+    }
+    .fact-row .key { color: var(--muted); }
+    .fact-row .val { font-weight: 600; color: var(--ink); }
+    @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; gap: 2rem; } }
+
+    /* ===== TIMELINE CARDS (experience / education) ===== */
+    .cards { display: grid; gap: 1.2rem; max-width: 54rem; margin: 0 auto; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 1.7rem 1.8rem;
+      position: relative; padding-left: 2.4rem;
+    }
+    .card::before {
+      content: ''; position: absolute; left: 1.15rem; top: 2.1rem; bottom: 1.7rem;
+      width: 1px; background: var(--line-strong);
+    }
+    .card::after {
+      content: ''; position: absolute; left: 0.95rem; top: 1.9rem;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--surface); border: 2px solid var(--accent);
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+    .card-head h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem; font-weight: 600; letter-spacing: -0.02em;
+    }
+    .card .when {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.74rem; color: var(--muted); white-space: nowrap;
+    }
+    .card .where { font-size: 0.88rem; color: var(--accent); margin: 0.3rem 0 1rem; }
+    .card ul { list-style: none; display: grid; gap: 0.45rem; }
+    .card li { position: relative; padding-left: 1.1rem; font-size: 0.93rem; color: var(--soft); }
+    .card li::before {
+      content: ''; position: absolute; left: 0; top: 0.62em;
+      width: 5px; height: 1px; background: var(--line-strong);
+    }
+
+    /* ===== SKILLS ===== */
+    .skill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 1.2rem; }
+    .skill-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 1.7rem;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .skill-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .skill-icon { font-size: 1.4rem; margin-bottom: 0.9rem; }
+    .skill-card h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem; font-weight: 600; letter-spacing: -0.015em;
+      margin-bottom: 0.9rem;
+    }
+    .skill-card ul { list-style: none; display: grid; gap: 0.4rem; }
+    .skill-card li { font-size: 0.88rem; color: var(--soft); padding-left: 1.1rem; position: relative; }
+    .skill-card li::before {
+      content: ''; position: absolute; left: 0; top: 0.6em;
+      width: 5px; height: 1px; background: var(--accent);
+    }
+
+    /* ===== TOOLS ===== */
+    .tool-row { margin-bottom: 2rem; }
+    .tool-row h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); font-weight: 500; margin-bottom: 0.9rem;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 0.5rem 0.85rem;
+      font-size: 0.85rem; font-weight: 500; color: var(--soft);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--ink); transform: translateY(-2px); }
+    .chip-icon { width: 17px; height: 17px; flex-shrink: 0; }
+    .chip-letter {
+      width: 17px; height: 17px; border-radius: 4px; flex-shrink: 0;
+      color: #fff; font-size: 0.62rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .block-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted);
+      text-align: center; margin-bottom: 2rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .block-label::before, .block-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--line);
+    }
+
+    /* ===== CERTS ===== */
+    .cert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.8rem; }
+    .cert {
+      display: flex; align-items: center; gap: 0.85rem;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 0.95rem 1.1rem;
+    }
+    .cert-badge { font-size: 1.1rem; flex-shrink: 0; }
+    .cert p { font-size: 0.87rem; color: var(--soft); }
+
+    /* ===== PORTFOLIO: category tabs ===== */
+    .cs-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2.8rem; }
+    .cs-tab {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em;
+      padding: 0.6rem 1.1rem; border-radius: var(--r);
+      border: 1px solid var(--line); background: var(--surface);
+      color: var(--muted); cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .cs-tab:hover { border-color: var(--accent); color: var(--ink); }
+    .cs-tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ===== WORK CARDS ===== */
+    .work-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4rem; align-items: start; }
+    .work {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+    .work:hover { border-color: var(--line-strong); transform: translateY(-3px); }
+    .work.open { grid-column: 1 / -1; transform: none; border-color: var(--accent); }
+    .work-thumb { border-bottom: 1px solid var(--line); background: var(--surface-2); cursor: zoom-in; }
+    .work-thumb img { width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
+    .work-body { padding: 1.6rem 1.7rem 1.8rem; display: flex; flex-direction: column; gap: 1rem; }
+    .work-kicker {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem; font-weight: 500; color: var(--accent);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .work-body h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem; font-weight: 600; letter-spacing: -0.025em;
+    }
+    .work-sum { font-size: 0.94rem; color: var(--soft); }
+    .work-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .work-stat {
+      background: var(--accent-soft); border-radius: var(--r);
+      padding: 0.85rem 0.6rem; text-align: center;
+    }
+    .work-stat b {
+      display: block; font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.95rem; font-weight: 600; color: var(--accent-ink);
+      letter-spacing: -0.01em;
+    }
+    .work-stat span { font-size: 0.68rem; color: var(--muted); line-height: 1.3; display: block; margin-top: 0.25rem; }
+
+    /* connector-line flow, mirroring a workflow canvas */
+    .work-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 0; }
+    .work-flow i {
+      font-style: normal; width: 16px; height: 1px;
+      background: var(--line-strong); flex-shrink: 0;
+    }
+    .work-flow span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; font-weight: 500;
+      background: var(--surface); border: 1px solid var(--line-strong);
+      border-radius: 6px; padding: 0.32rem 0.6rem; color: var(--soft);
+      margin: 0.2rem 0;
+    }
+    .work-more {
+      align-self: flex-start; font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em;
+      padding: 0.6rem 1.1rem; border-radius: var(--r);
+      border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .work-more:hover { border-color: var(--accent); color: var(--accent); }
+    .work-full { border-top: 1px solid var(--line); margin-top: 0.5rem; padding-top: 1.8rem; }
+    @media (max-width: 900px) { .work-grid { grid-template-columns: 1fr; } }
+
+    /* ===== CASE STUDY BODY ===== */
+    .cs-h {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem; font-weight: 600; letter-spacing: -0.025em;
+      margin: 2.6rem 0 1rem; padding-left: 1rem; position: relative;
+    }
+    .cs-h::before {
+      content: ''; position: absolute; left: 0; top: 0.3em; bottom: 0.3em;
+      width: 3px; background: var(--accent);
+    }
+    .work-full > .cs-h:first-child { margin-top: 0; }
+    .cs-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; font-weight: 500; color: var(--muted);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin: 2rem 0 0.8rem;
+    }
+    .cs-p { font-size: 0.97rem; color: var(--soft); max-width: 48rem; margin-bottom: 0.8rem; }
+    .cs-ul { list-style: none; display: grid; gap: 0.5rem; margin: 0.4rem 0 1rem; max-width: 48rem; }
+    .cs-ul li { position: relative; padding-left: 1.4rem; font-size: 0.95rem; color: var(--soft); }
+    .cs-ul li::before {
+      content: ''; position: absolute; left: 0; top: 0.68em;
+      width: 8px; height: 1px; background: var(--accent);
+    }
+    .cs-code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem; background: var(--ink); color: #C7D2FE;
+      border-radius: var(--r); padding: 0.9rem 1.05rem;
+      overflow-x: auto; white-space: nowrap; margin: 0.6rem 0 1.2rem;
+      max-width: 48rem;
+    }
+    .cs-fig { margin: 1.2rem 0 1.7rem; }
+    .cs-fig img {
+      display: block; width: 100%; max-width: 720px;
+      border: 1px solid var(--line-strong); border-radius: var(--r);
+      cursor: zoom-in; background: var(--surface);
+      transition: border-color 0.2s ease;
+    }
+    .cs-fig img:hover { border-color: var(--accent); }
+    .cs-fig.small img { max-width: 380px; }
+    .cs-cap {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.74rem; color: var(--muted); margin-top: 0.6rem;
+      max-width: 720px; line-height: 1.55;
+    }
+    .cs-links { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 1.4rem 0 0.5rem; }
+    .cs-note {
+      font-size: 0.85rem; color: var(--muted);
+      margin-top: 2rem; padding-top: 1.4rem; border-top: 1px solid var(--line);
+    }
+    .cs-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.6rem; }
+    .cs-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem; font-weight: 500;
+      background: var(--accent-soft); color: var(--accent-ink);
+      padding: 0.3rem 0.62rem; border-radius: 6px;
+    }
+
+    /* stacked screenshots */
+    .cs-stack {
+      position: relative; max-width: 720px;
+      margin: 1.3rem 0 2.6rem; cursor: zoom-in;
+      transition: transform 0.2s ease;
+    }
+    .cs-stack:hover { transform: translateY(-3px); }
+    .cs-stack-layer {
+      position: absolute; inset: 0;
+      border: 1px solid var(--line-strong); border-radius: var(--r);
+      background: var(--surface);
+    }
+    .cs-stack-layer.l3 { transform: translate(15px, 15px); opacity: 0.5; }
+    .cs-stack-layer.l2 { transform: translate(8px, 8px); opacity: 0.8; }
+    .cs-stack img {
+      position: relative; display: block; width: 100%;
+      border: 1px solid var(--line-strong); border-radius: var(--r);
+      background: var(--surface);
+    }
+    .cs-stack-badge {
+      position: absolute; right: 0.7rem; bottom: 0.7rem; z-index: 2;
+      background: var(--ink); color: #fff;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem; font-weight: 500;
+      padding: 0.42rem 0.8rem; border-radius: 999px;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+
+    /* ===== DESIGN GRID ===== */
+    .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+    .design-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); overflow: hidden; cursor: zoom-in;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .design-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .design-img-wrap { background: var(--surface-2); border-bottom: 1px solid var(--line); }
+    .design-img { width: 100%; display: block; aspect-ratio: 1 / 1; object-fit: cover; }
+    .design-info { padding: 1rem 1.1rem 1.2rem; }
+    .design-info h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.98rem; font-weight: 600; letter-spacing: -0.015em;
+    }
+    .design-info p { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+
+    /* ===== SPREADSHEETS ===== */
+    .sheets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 1.2rem; }
+    .sheet-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--r); overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .sheet-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .sheet-header {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 1.1rem 1.3rem; border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+    .sheet-icon {
+      width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+      background: #107C41; color: #fff;
+      font-size: 0.75rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sheet-header h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.98rem; font-weight: 600; letter-spacing: -0.015em;
+    }
+    .sheet-body { padding: 1.3rem; display: flex; flex-direction: column; gap: 1rem; }
+    .sheet-desc { font-size: 0.88rem; color: var(--soft); }
+    .sheet-preview { border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; }
+    .sheet-preview table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+    .sheet-preview th {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--surface-2); color: var(--muted);
+      font-weight: 500; text-align: left;
+      padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .sheet-preview td {
+      padding: 0.45rem 0.7rem; color: var(--soft);
+      border-bottom: 1px solid var(--line); white-space: nowrap;
+    }
+    .sheet-preview tr:last-child td { border-bottom: none; }
+    .sheet-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .sheet-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem; font-weight: 500;
+      background: var(--accent-soft); color: var(--accent-ink);
+      padding: 0.3rem 0.62rem; border-radius: 6px;
+    }
+    .sheet-download {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem; font-weight: 500;
+      text-align: center; text-decoration: none;
+      padding: 0.65rem; border-radius: var(--r);
+      border: 1px solid var(--line-strong); color: var(--ink);
+      transition: all 0.2s ease;
+    }
+    .sheet-download:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== LIGHTBOX ===== */
+    .modal {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(11, 16, 32, 0.92);
+      display: flex; align-items: center; justify-content: center;
+      padding: 4.5rem 5rem; animation: fadein 0.22s ease;
+      overflow: hidden;
+    }
+    @media (max-width: 640px) { .modal { padding: 4rem 0.75rem 2rem; } }
+    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+    .modal-fig {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.9rem; max-width: 92vw; max-height: 90vh;
+      min-height: 0;
+    }
+    .modal-fig img {
+      max-width: 88vw; max-height: 74vh;
+      width: auto; height: auto; object-fit: contain;
+      border-radius: var(--r); background: #fff;
+      flex: 0 1 auto; min-height: 0;
+    }
+    .modal-cap {
+      font-family: 'IBM Plex Mono', monospace;
+      color: rgba(255, 255, 255, 0.85); font-size: 0.8rem;
+      text-align: center; max-width: 46rem; line-height: 1.6;
+    }
+    .modal-count {
+      font-family: 'IBM Plex Mono', monospace;
+      color: rgba(255, 255, 255, 0.45); font-size: 0.74rem; letter-spacing: 0.1em;
+    }
+    .modal-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: #fff; color: var(--ink);
+      width: 42px; height: 42px; border: none; border-radius: 50%;
+      cursor: pointer; font-size: 1.3rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s ease;
+    }
+    .modal-close:hover { transform: rotate(90deg); }
+    .modal-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 46px; height: 46px; border-radius: 50%;
+      border: none; cursor: pointer; font-size: 1.4rem;
+      background: rgba(255, 255, 255, 0.9); color: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s ease;
+    }
+    .modal-nav:hover { background: #fff; }
+    .modal-nav.prev { left: 1.2rem; }
+    .modal-nav.next { right: 1.2rem; }
+    @media (max-width: 640px) {
+      .modal-nav { width: 38px; height: 38px; }
+      .modal-nav.prev { left: 0.3rem; }
+      .modal-nav.next { right: 0.3rem; }
+    }
+
+    /* ===== CONTACT ===== */
+    .contact {
+      position: relative;
+      padding: 6.5rem 2rem;
+      text-align: center;
+      background: var(--ink); color: #fff;
+    }
+    .contact::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.09) 1px, transparent 1.2px);
+      background-size: 24px 24px; pointer-events: none;
+    }
+    .contact > * { position: relative; }
+    .contact .section-eyebrow { color: #8FA5FF; }
+    .contact .section-eyebrow::before { background: #8FA5FF; }
+    .contact h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.9rem, 4vw, 2.7rem);
+      font-weight: 700; letter-spacing: -0.035em;
+    }
+    .contact h2 em { font-style: normal; color: #8FA5FF; }
+    .contact > p { color: rgba(255, 255, 255, 0.65); max-width: 34rem; margin: 1rem auto 2.8rem; }
+    .contact-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.8rem; max-width: 62rem; margin: 0 auto;
+    }
+    .social-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--r); padding: 1.3rem 1rem;
+      text-decoration: none; color: #fff;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .social-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #8FA5FF; transform: translateY(-3px);
+    }
+    .social-icon-img { width: 22px; height: 22px; margin-bottom: 0.3rem; }
+    .social-icon-emoji { font-size: 1.25rem; margin-bottom: 0.3rem; }
+    .social-btn .label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .social-btn .value { font-size: 0.9rem; font-weight: 500; }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      background: var(--ink); color: rgba(255, 255, 255, 0.4);
+      text-align: center; padding: 2rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .footer span { color: #8FA5FF; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    const { useState, useEffect } = React;
+    const h = React.createElement;
+    const F = React.Fragment;
+
+    const NAV = ['home', 'about', 'experience', 'skills', 'portfolio', 'contact'];
+
+    const EXPERIENCE = [
+      {
+        title: 'Social Media Manager',
+        when: '2024 — 2025',
+        where: 'VRML Demolition and Excavation Services · Philippines',
+        bullets: [
+          'Designed social media graphics and promotional images using Canva to support branding and visual content.',
+          'Managed and scheduled posts across platforms to keep a consistent brand presence.',
+          'Grew audience engagement through timely responses to comments and messages.',
+          'Responded to customer inquiries professionally and promptly via social media.',
+          'Tracked post performance and adjusted content strategy based on engagement trends.',
+        ],
+      },
+      {
+        title: 'City Scholar — Administrative & Community Service',
+        when: '2023 — Present',
+        where: 'City of San Jose del Monte · Bulacan',
+        bullets: [
+          'Provided administrative support at the barangay office, including filing and records management.',
+          'Prepared, edited, and organized official documents using Microsoft Word and Excel.',
+          'Assisted in drafting legal documents under the supervision of senior staff.',
+          'Coordinated city events and academic seminars as event coordinator.',
+          'Performed basic computer troubleshooting and technical assistance for office staff.',
+        ],
+      },
+    ];
+
+    const EDUCATION = [
+      {
+        title: 'Bachelor of Science in Information Technology',
+        when: '2023 — Present',
+        where: 'STI College SJDM · San Jose del Monte, Bulacan',
+        bullets: ['Currently pursuing — focused on IT, databases, and systems.'],
+      },
+    ];
+
+    const SKILLS = [
+      {
+        icon: '⚡',
+        title: 'AI Automation & CRM',
+        items: ['GoHighLevel builds & snapshots', 'Workflow automation (Zapier, Make, n8n)', 'Google Apps Script', 'CRM pipelines & lead routing', 'SMS & email follow-up sequences', 'API integration', 'Landing pages & booking calendars'],
+      },
+      {
+        icon: '📋',
+        title: 'Admin & Executive Support',
+        items: ['General administrative support', 'Executive assistance', 'Document preparation & editing', 'Records & file management', 'Event coordination', 'Online research', 'Email & calendar management'],
+      },
+      {
+        icon: '🎨',
+        title: 'Creative & Design',
+        items: ['Graphic design (Canva)', 'Social media graphics', 'Promotional images', 'Brand visual content', 'Short-form content'],
+      },
+      {
+        icon: '💻',
+        title: 'Technical & Digital',
+        items: ['Microsoft 365', 'Google Workspace', 'Basic SQL & MySQL', 'Google Analytics', 'SEO (Search Engine Optimization)', 'Computer troubleshooting'],
+      },
+    ];
+
+    const TOOLS = [
+      { group: 'Automation & AI', items: [
+        { name: 'GoHighLevel', letter: 'G', bg: '#155EEF' },
+        { name: 'Zapier', icon: 'https://cdn.simpleicons.org/zapier/FF4F00' },
+        { name: 'Google Apps Script', letter: 'S', bg: '#4285F4' },
+        { name: 'Make', letter: 'M', bg: '#6D00CC' },
+        { name: 'n8n', icon: 'https://api.iconify.design/simple-icons/n8n.svg?color=%23EA4B71' },
+        { name: 'Slack', icon: 'https://api.iconify.design/logos:slack-icon.svg' },
+        { name: 'Gemini API', icon: 'https://api.iconify.design/logos:google-gemini.svg' },
+        { name: 'ChatGPT', letter: 'G', bg: '#10A37F' },
+        { name: 'Claude', letter: 'C', bg: '#D97757' },
+      ]},
+      { group: 'Microsoft 365', items: [
+        { name: 'Word', letter: 'W', bg: '#2B579A' },
+        { name: 'Excel', letter: 'X', bg: '#217346' },
+        { name: 'PowerPoint', letter: 'P', bg: '#B7472A' },
+        { name: 'Outlook', letter: 'O', bg: '#0078D4' },
+        { name: 'Teams', letter: 'T', bg: '#6264A7' },
+      ]},
+      { group: 'Google Workspace', items: [
+        { name: 'Docs', icon: 'https://cdn.simpleicons.org/googledocs/4285F4' },
+        { name: 'Sheets', icon: 'https://cdn.simpleicons.org/googlesheets/34A853' },
+        { name: 'Drive', icon: 'https://cdn.simpleicons.org/googledrive/4285F4' },
+        { name: 'Gmail', icon: 'https://cdn.simpleicons.org/gmail/EA4335' },
+        { name: 'Calendar', icon: 'https://cdn.simpleicons.org/googlecalendar/4285F4' },
+      ]},
+      { group: 'Design & Social', items: [
+        { name: 'Canva', icon: 'https://api.iconify.design/devicon:canva.svg' },
+        { name: 'Facebook', icon: 'https://cdn.simpleicons.org/facebook/1877F2' },
+        { name: 'Instagram', icon: 'https://cdn.simpleicons.org/instagram/E4405F' },
+        { name: 'TikTok', icon: 'https://api.iconify.design/logos:tiktok-icon.svg' },
+        { name: 'LinkedIn', icon: 'https://api.iconify.design/logos:linkedin-icon.svg' },
+      ]},
+      { group: 'Other', items: [
+        { name: 'MySQL', icon: 'https://cdn.simpleicons.org/mysql/4479A1' },
+        { name: 'Google Analytics', icon: 'https://cdn.simpleicons.org/googleanalytics/E37400' },
+        { name: 'Trello', icon: 'https://cdn.simpleicons.org/trello/0052CC' },
+      ]},
+    ];
+
+    const CERTS = [
+      { icon: '📊', name: 'Google Analytics Certification' },
+      { icon: '🔍', name: 'HubSpot SEO Certification' },
+      { icon: '🎨', name: "Meet Canva's Visual Suite" },
+      { icon: '✨', name: 'Canva Essentials Certificate' },
+      { icon: '🏆', name: 'With Honors — Senior High School' },
+      { icon: '🌱', name: 'Youth Talks: Digital Pathways for Sustainable Development' },
+      { icon: '🎤', name: 'Stand & Deliver: Public Speaking Workshop' },
+    ];
+
+    const DESIGNS = [
+      { src: 'design-flavor51.png?v=4', title: 'Flavor 51 North', category: 'Burger Reviews · Restaurant Promo' },
+      { src: 'design-flavor51-shrimp.png?v=4', title: 'Flavor 51 North', category: 'Shrimp Menu Feature · Food Ad' },
+      { src: 'design-addictions.png?v=4', title: 'My Addictions Boutique', category: 'Fashion Story · Glow in Yellow' },
+      { src: 'design-addictions-hoodie.png?v=4', title: 'My Addictions Boutique', category: 'Cropped Hoodie · Product Feature' },
+      { src: 'design-ultrean.png?v=4', title: 'Ultrean Air Fryer', category: 'Product Ad · E-Commerce' },
+      { src: 'design-vitaboost.png?v=4', title: 'Vita-Boost Vitamin Drink', category: 'Flash Sale · Promotional Post' },
+    ];
+
+    const SPREADSHEETS = [
+      {
+        file: 'https://docs.google.com/spreadsheets/d/1OMqyHJkcfKIeKHBCKaaGCTyrazzv85uHOBCFI4u__xo/edit?usp=sharing',
+        title: 'Employee Database with Formulas',
+        desc: 'Employee records with 5 columns — name, age, department, salary, and experience — plus AVERAGE formulas calculating the overall salary average and HR-only salary average.',
+        tags: ['Data Entry', 'Formulas'],
+        preview: {
+          headers: ['Name', 'Department', 'Salary'],
+          rows: [
+            ['John Smith', 'Marketing', '5,000'],
+            ['Sarah Lee', 'Finance', '8,000'],
+            ['Michael Tan', 'HR', '4,000'],
+            ['Emily Chen', 'Operations', '6,000'],
+          ],
+        },
+      },
+      {
+        file: 'https://docs.google.com/spreadsheets/d/1-RxRo_IgotXv9Ajdi_T5LehjWoI5oSwLDWGZJBj7A8s/edit?usp=sharing',
+        title: 'Pivot Table Analysis',
+        desc: 'Pivot table summarizing total salaries per department — built from the employee database to compare which departments have the highest combined payroll.',
+        tags: ['Pivot Table', 'Data Analysis'],
+        preview: {
+          headers: ['Department', 'Sum of Salary'],
+          rows: [
+            ['Finance', '86,000'],
+            ['HR', '62,500'],
+            ['Marketing', '54,000'],
+            ['Operations', '71,000'],
+          ],
+        },
+      },
+      {
+        file: 'https://docs.google.com/spreadsheets/d/1Z8h_Us4zDzb5HuodrVg3UtEeNjjXPdt8ovRVIgFyfIE/edit?usp=sharing',
+        title: 'SEO Content Tracker',
+        desc: 'Content optimization log used while rewriting articles about surnames and family history — tracks each piece\'s original title, rewritten SEO-friendly title, and final word count.',
+        tags: ['SEO', 'Content Tracking'],
+        preview: {
+          headers: ['Original Title', 'New Title', 'Words'],
+          rows: [
+            ['Denomination by Surname', 'What Denomination by Surname?', '720'],
+            ['Surname Origin Guide', 'Surname Origin: A Comprehensive Guide', '845'],
+            ['Surname Change in Israel', 'Surname Change in Israel', '612'],
+          ],
+        },
+      },
+      {
+        file: 'https://docs.google.com/spreadsheets/d/1IWxS6PcNALHkcRZWfJiuvM9B5YGD6rKPGZpsBpIyHAM/edit?usp=sharing',
+        title: 'Social Media Content Calendar',
+        desc: 'One-week content plan for a wellness and supplement brand — schedules daily posts across Instagram, LinkedIn, and TikTok with full caption, hashtags, and visual concept for each.',
+        tags: ['Content Planning', 'Social Media'],
+        preview: {
+          headers: ['Date', 'Platform', 'Content Type'],
+          rows: [
+            ['May 4 (Mon)', 'Instagram', 'Educational Post'],
+            ['May 5 (Tue)', 'LinkedIn', 'Tip'],
+            ['May 6 (Wed)', 'Instagram', 'Product Spotlight'],
+            ['May 7 (Thu)', 'TikTok', 'Short Video'],
+          ],
+        },
+      },
+    ];
+
+
+
+    // Case-study content copied from the source documents, section for section.
+    const CASES = [
+      {
+        featured: true,
+        tab: 'GoHighLevel System',
+        badge: 'GoHighLevel',
+        kicker: 'GoHighLevel · CRM system',
+        thumb: 'ghl-01-landing-page.jpg',
+        summary: 'A complete lead-response system for home services. Every form fill and missed call gets answered in under a minute, follow-ups run themselves for days, and everything stops the moment the customer replies.',
+        stats: [['9', 'automated workflows'], ['under 1 min', 'response time'], ['~2 hrs', 'to repoint to a new business']],
+        flow: ['Lead comes in', 'Instant text + email', 'Emergency routing', 'Booking + reminders', 'Quote follow-up'],
+        title: 'Automated Lead System for Home Services',
+        tagline: 'Built in GoHighLevel',
+        meta: [
+          ['For', 'HVAC, roofing, plumbing and solar businesses.'],
+          ['What I did:', 'Built the workflows, the landing page, the booking calendar and the pipeline.'],
+        ],
+        tags: ['GoHighLevel', 'Workflow Automation', 'SMS & Email Sequences', 'Pipelines', 'Landing Pages', 'Booking Calendars'],
+        blocks: [
+          { t: 'h', v: 'The problem' },
+          { t: 'p', v: 'A customer fills out your website form at 2pm.' },
+          { t: 'p', v: 'You\'re on a roof. Your phone is in the truck.' },
+          { t: 'p', v: 'You call back at 6pm — and they\'ve already booked with whoever answered first.' },
+          { t: 'p', v: 'In home services, the business that responds first usually gets the job. Every missed call and every slow callback is money going to a competitor.' },
+
+          { t: 'h', v: 'What this system does' },
+          { t: 'p', v: 'It answers every lead in under a minute, 24/7 — even when you\'re on a job.' },
+          { t: 'p', v: 'Here\'s what happens automatically:' },
+          { t: 'links', v: [
+            { label: 'View the landing page →', href: 'https://sites.leadconnectorhq.com/preview/7UCrIkmVVfg75SQkKqtW' },
+          ]},
+          { t: 'fig', src: 'ghl-01-landing-page.jpg?v=4', cap: 'The landing page and quote request form' },
+
+          { t: 'sub', v: 'When someone fills out your form' },
+          { t: 'p', v: 'Whole workflow process:' },
+          { t: 'stack', v: [
+            { src: 'ghl-02-workflow-overview.jpg?v=4', cap: 'New lead workflow — the full canvas' },
+            { src: 'ghl-03-workflow-branch-a.jpg?v=4', cap: 'Emergency and standard branches' },
+            { src: 'ghl-04-workflow-branch-b.jpg?v=4', cap: 'Contacted / not contacted check and escalation' },
+            { src: 'ghl-05-workflow-missed-call.jpg?v=4', cap: 'Qualifying questions and booking link' },
+            { src: 'ghl-06-workflow-nurture-a.jpg?v=4', cap: 'The 8-day follow-up sequence' },
+            { src: 'ghl-07-workflow-nurture-b.jpg?v=4', cap: 'Social proof and final follow-up steps' },
+          ]},
+          { t: 'p', v: 'Right away — they get a text and an email. You get an alert on your phone.' },
+          { t: 'p', v: 'If it\'s an emergency — no heat, no cooling — they\'re told you\'re calling in 2 minutes, and you\'re alerted three different ways so you don\'t miss it.' },
+          { t: 'p', v: 'If nobody has called them after 10 minutes — the system chases you again, and sends the customer your direct emergency line. It catches the mistake before the customer notices.' },
+          { t: 'p', v: 'If it\'s not urgent — they get a calmer message with a link to book a visit themselves.' },
+          { t: 'p', v: 'Over the next 8 days — if they don\'t reply, they get 9 follow-up messages spread out across text and email. The moment they respond, everything stops.' },
+
+          { t: 'sub', v: 'When someone calls and you can\'t answer' },
+          { t: 'p', v: '20 seconds later — they get a text apologising and asking what they need.' },
+          { t: 'p', v: 'If they call again and you miss it — they get a different message, and you get flagged to call them back manually.' },
+          { t: 'p', v: 'Third missed call — they get a personal message from you with a direct line, and you get an urgent alert. That lead is about to walk.' },
+
+          { t: 'sub', v: 'When someone books a visit' },
+          { t: 'p', v: 'They get a confirmation right away, a reminder the day before, and an "on our way" text 2 hours before.' },
+          { t: 'p', v: 'If they don\'t show up — they automatically get a message offering a new time, and you\'re told about it.' },
+          { t: 'p', v: 'If they did show up — they get a thank-you and their file moves forward to quoting.' },
+
+          { t: 'sub', v: 'After you send a quote' },
+          { t: 'p', v: 'Five follow-up messages over 10 days, ending with three buttons they can tap:' },
+          { t: 'ul', v: [
+            'Ready to book → marked as won, you get told to call and schedule',
+            'Still deciding → moved to a slower follow-up',
+            'Went with someone else → recorded so you know why you lost it',
+          ]},
+          { t: 'p', v: 'Most businesses just stop chasing and never find out what happened. This tells you.' },
+
+          { t: 'h', v: 'Why it doesn\'t feel like spam' },
+          { t: 'p', v: 'It stops the second someone replies. No customer ever gets a follow-up text after they\'ve already answered you.' },
+          { t: 'p', v: 'Anyone who asks not to be contacted is blocked before a single message is sent.' },
+          { t: 'p', v: 'After-hours messages say when you\'ll actually respond instead of promising a callback at 11pm you can\'t make.' },
+          { t: 'p', v: 'The messages sound like a person. Short, direct, no marketing fluff — written the way a busy contractor actually texts.' },
+
+          { t: 'h', v: 'What\'s included' },
+          { t: 'stack', v: [
+            { src: 'ghl-08-whats-included-a.jpg?v=4', cap: 'Workflows 01 to 07' },
+            { src: 'ghl-09-whats-included-b.jpg?v=4', cap: 'Workflows 08 and 09 — the rest of the library' },
+            { src: 'ghl-10-pipeline.jpg?v=4', cap: 'The pipeline — where every lead stands' },
+          ]},
+          { t: 'ul', v: [
+            '9 automated workflows covering everything above',
+            'A landing page and quote request form',
+            'A booking calendar with automatic reminders',
+            'A pipeline that shows exactly where every lead stands and tracking so you can see which leads came from where',
+          ]},
+          { t: 'links', v: [
+            { label: 'View the landing page →', href: 'https://sites.leadconnectorhq.com/preview/7UCrIkmVVfg75SQkKqtW' },
+            { label: 'Try the booking calendar →', href: 'https://api.leadconnectorhq.com/widget/booking/DzHtB9I9NdwROgIQrm0x' },
+          ]},
+
+          { t: 'h', v: 'It works for any home services business' },
+          { t: 'fig', src: 'ghl-11-custom-values.jpg?v=4', cap: 'Every business detail lives in one place' },
+          { t: 'p', v: 'All your business details — company name, phone number, service area, licence number, booking link — are stored in one place. Change those and the whole system works for a different company.' },
+          { t: 'p', v: 'Setting it up for a new business takes about two hours.' },
+
+          { t: 'h', v: 'About this build' },
+          { t: 'p', v: 'This is a demo system built for a fictional company, Northside HVAC, to show how the whole thing works end to end.' },
+          { t: 'p', v: 'The text message steps are fully built but not switched on — sending business texts in the US requires registering the business with the phone carriers using a real company name and tax ID, which is done during setup for each client.' },
+          { t: 'p', v: 'Everything else — the follow-up logic, the routing, the pipeline, the reminders — is built and tested.' },
+        ],
+      },
+
+      {
+        badge: 'Automation case study',
+        tab: 'Hot Lead Strike List',
+        kicker: 'Zapier · Google Sheets · Slack',
+        thumb: 'zap-lead-slack-output.jpg',
+        summary: 'A real estate team kept every lead in a Google Sheet nobody opened, so agents called people in whatever order they appeared. This scores each lead overnight and posts only the hot ones to Slack before the workday starts.',
+        stats: [['8:00 AM', 'posts every day'], ['3 steps', 'in the whole Zap'], ['1 message', 'not one per lead']],
+        flow: ['Sheet scores the leads', 'Zapier reads one cell', 'Slack gets one message'],
+        title: 'Morning Hot Lead Strike List',
+        tagline: 'Every morning, Slack gets a list of the leads most likely to buy.',
+        meta: [
+          ['Tools used:', 'Zapier, Google Sheets, Slack'],
+          ['What I did:', 'Set up the spreadsheet, wrote the formulas, and built the Zap.'],
+        ],
+        tags: ['Zapier', 'Google Sheets', 'Slack'],
+        note: 'Built with Zapier, Google Sheets, and Slack. The data shown is sample data.',
+        blocks: [
+          { t: 'h', v: 'The problem' },
+          { t: 'p', v: 'A real estate team kept all their leads in a Google Sheet. Nobody opened it in the morning.' },
+          { t: 'p', v: 'That meant a lead who visited the website five times and filled out a form was treated the same as a lead who clicked one email. Agents just called people in the order they appeared on the list.' },
+          { t: 'p', v: 'The team is in Slack all day. They are not in the spreadsheet. So I moved the information to Slack.' },
+
+          { t: 'h', v: 'What this automation does' },
+          { t: 'p', v: 'Every day at 8:00 AM, the automation looks at the lead sheet.' },
+          { t: 'p', v: 'Each lead has a score. The score is higher if they opened emails, visited the website, or filled out a form.' },
+          { t: 'p', v: 'Any lead with a score above 5 gets added to one Slack message. That message is posted to the team channel before the workday starts.' },
+
+          { t: 'h', v: 'How it works' },
+          { t: 'p', v: 'The Zap has three steps.' },
+          { t: 'sub', v: 'Step 1 — The timer' },
+          { t: 'fig', small: true, src: 'zap-lead-01-schedule.jpg?v=4', cap: 'This runs the automation every day at 8:00 AM. Nobody has to press anything.' },
+          { t: 'sub', v: 'Step 2 — Read the spreadsheet' },
+          { t: 'fig', small: true, src: 'zap-lead-02-sheets.jpg?v=4', cap: 'It opens the Briefing tab and reads one cell. That cell already holds every hot lead, written out and ready to send.' },
+          { t: 'sub', v: 'Step 3 — Post to Slack' },
+          { t: 'fig', small: true, src: 'zap-lead-03-slack.jpg?v=4', cap: 'It sends the message to the team channel. One message with all the leads in it.' },
+
+          { t: 'h', v: 'What the team sees in Slack' },
+          { t: 'fig', src: 'zap-lead-slack-output.jpg?v=4', cap: 'Four leads made the list. Alice Ray scored 3, so she is not included.' },
+
+          { t: 'h', v: 'How the spreadsheet does the work' },
+          { t: 'p', v: 'Zapier can only read one row of a spreadsheet at a time. A briefing needs many rows. So the spreadsheet does the work first, and gives Zapier one finished cell to pick up.' },
+          { t: 'p', v: 'There are three tabs. The Leads tab holds the lead data. It also has a column that writes out the Slack text for each lead, but only if that lead scored above 5. If the lead did not score high enough, the cell stays empty.' },
+          { t: 'p', v: 'The Briefing tab joins all the non-empty cells together into one cell. That is the cell Zapier reads.' },
+          { t: 'p', v: 'The score is calculated like this:' },
+          { t: 'code', v: '=(G2*2)+(H2*3)+(IF(I2="Yes",10,0))' },
+          { t: 'p', v: 'An email open is worth 2 points. A website visit is worth 3 points, because it shows more interest. Filling out a form is worth 10 points, because that person is asking to be contacted.' },
+
+          { t: 'h', v: 'Why this is useful' },
+          { t: 'ul', v: [
+            'Agents know who to call first.',
+            'Nobody has to open the spreadsheet.',
+            'Everyone sees the same list, so there is no guessing about who is a good lead.',
+            'It is one message per day, not one message per lead.',
+            'It works every morning without anyone doing anything.',
+          ]},
+
+          { t: 'h', v: 'Choices I made' },
+          { t: 'ul', v: [
+            'The message text is built in the spreadsheet, not in Zapier. If the team wants the message to look different, I change one formula instead of rebuilding the automation.',
+            'Cold leads are left out on purpose. If the message is full of people who are not worth calling, the team will stop reading it.',
+            'The filtering happens in the spreadsheet, so the Zap only needs three steps. Fewer steps means it costs less to run.',
+          ]},
+        ],
+      },
+
+      {
+        badge: 'Automation case study',
+        tab: 'Price Drop Briefing',
+        kicker: 'Zapier · Google Sheets · Slack',
+        thumb: 'zap-price-slack-output.jpg',
+        summary: 'Price cuts were sitting unread in a listings sheet for days — sometimes the buyer spotted them first. This works out the percentage drop overnight and posts anything over 3% on the morning it happens.',
+        stats: [['8:15 AM', 'posts every day'], ['3%', 'minimum drop to qualify'], ['nothing', 'posted if no prices moved']],
+        flow: ['Listings sheet does the math', 'Zapier reads one cell', 'Slack price drop briefing'],
+        title: 'Overnight Price Drop Briefing',
+        tagline: 'Every morning, Slack gets a list of the houses that dropped in price.',
+        meta: [
+          ['Tools used:', 'Zapier, Google Sheets, Slack'],
+          ['What I did:', 'Set up the spreadsheet, wrote the formulas, and built the Zap.'],
+        ],
+        tags: ['Zapier', 'Google Sheets', 'Slack'],
+        note: 'Built with Zapier, Google Sheets, and Slack. The data shown is sample data.',
+        blocks: [
+          { t: 'h', v: 'The problem' },
+          { t: 'p', v: 'Price changes were being written into a listings spreadsheet, but nobody checked it daily.' },
+          { t: 'p', v: 'Agents would find out about a price cut days later. Sometimes the buyer found out first, because they saw it on a property website.' },
+          { t: 'p', v: 'A price drop is most useful on the day it happens. If an agent calls that morning, they get the showing. If they call on Thursday, the news is old.' },
+
+          { t: 'h', v: 'What this automation does' },
+          { t: 'p', v: 'Every day at 8:15 AM, the automation looks at the listings sheet.' },
+          { t: 'p', v: 'It compares the current price to the previous price and works out the percentage drop.' },
+          { t: 'p', v: 'Any house with a drop over 3% gets added to one Slack message, along with the old price, the new price, and how long it has been on the market.' },
+
+          { t: 'h', v: 'How it works' },
+          { t: 'p', v: 'The Zap has three steps. It is the same structure as the lead briefing, pointed at a different row.' },
+          { t: 'sub', v: 'Step 1 — The timer' },
+          { t: 'fig', small: true, src: 'zap-price-01-schedule.jpg?v=4', cap: 'This runs every day at 8:15 AM, fifteen minutes after the lead briefing, so the two messages do not arrive at the same time.' },
+          { t: 'sub', v: 'Step 2 — Read the spreadsheet' },
+          { t: 'fig', small: true, src: 'zap-price-02-sheets.jpg?v=4', cap: 'It opens the Briefing tab and reads one cell. That cell already holds every price drop, written out and ready to send.' },
+          { t: 'sub', v: 'Step 3 — Post to Slack' },
+          { t: 'fig', small: true, src: 'zap-price-03-slack.jpg?v=4', cap: 'It sends the message to the team channel. One message with all the price drops in it.' },
+
+          { t: 'h', v: 'What the team sees in Slack' },
+          { t: 'fig', src: 'zap-price-slack-output.jpg?v=4', cap: 'Three houses dropped in price. 99 Elm St did not change, so it is not included.' },
+
+          { t: 'h', v: 'How the spreadsheet does the work' },
+          { t: 'p', v: 'Zapier can only read one row of a spreadsheet at a time. A briefing needs many rows. So the spreadsheet does the work first, and gives Zapier one finished cell to pick up.' },
+          { t: 'p', v: 'The Listings tab holds the property data. It has a column that writes out the Slack text for each house, but only if the price actually dropped. If the price did not change, the cell stays empty.' },
+          { t: 'p', v: 'The Briefing tab joins all the non-empty cells together into one cell. That is the cell Zapier reads.' },
+          { t: 'p', v: 'The percentage drop is calculated like this:' },
+          { t: 'code', v: '=IF(AND(C2>0,B2<C2),((C2-B2)/C2)*100,0)' },
+          { t: 'p', v: 'It checks two things before doing the math. First, that there is a previous price to compare against, so a brand new listing does not cause an error. Second, that the new price is actually lower. If either check fails, it returns 0 and the house is left out.' },
+
+          { t: 'h', v: 'Why this is useful' },
+          { t: 'ul', v: [
+            'Agents hear about a price cut on the morning it happens.',
+            'The percentage is already worked out, so nobody has to do math during a phone call.',
+            'Days on market is shown next to the drop, which tells the agent how motivated the seller is.',
+            'If no prices changed, nothing gets posted.',
+            'It works every morning without anyone doing anything.',
+          ]},
+
+          { t: 'h', v: 'Choices I made' },
+          { t: 'ul', v: [
+            'Small price cuts are filtered out. A 0.2% change is not worth a phone call, and including it would make the team skim past the message.',
+            'The prices are formatted in the spreadsheet with commas, so Slack shows $425,000 instead of 425000.',
+            'It runs fifteen minutes after the lead briefing so the two messages do not land on top of each other.',
+          ]},
+        ],
+      },
+
+      {
+        badge: 'Automation case study',
+        tab: 'Morning Briefing (Email)',
+        kicker: 'Zapier · Google Sheets · Gmail',
+        thumb: 'zap-email-output.jpg',
+        summary: 'The same overnight briefing delivered to the team inbox instead of Slack, for teams that live in email. A weekday filter means nothing lands on a Saturday.',
+        stats: [['5 steps', 'in the Zap'], ['weekdays', 'only, never weekends'], ['1 email', 'with every listing in it']],
+        flow: ['Schedule', 'Weekday filter', 'Work out yesterday', 'Sheets lookup', 'Send Gmail'],
+        title: 'Morning Briefing Automation — Real Estate Team',
+        tagline: 'The same overnight briefing, delivered to the team inbox instead of Slack.',
+        meta: [
+          ['Tools used:', 'Zapier, Google Sheets, Gmail'],
+          ['What I did:', 'Set up the spreadsheet and built the Zap.'],
+        ],
+        tags: ['Zapier', 'Google Sheets', 'Gmail', 'Formatter'],
+        blocks: [
+          { t: 'h', v: 'What this automation does' },
+          { t: 'p', v: 'Every weekday at 8:00 AM, this workflow automatically scans a Google Sheet for overnight real estate activity — specifically property price changes from the previous day. It collects all matching listings, formats them into a clean email, and delivers a single briefing to the team inbox. No manual work required.' },
+
+          { t: 'h', v: 'How it works' },
+          { t: 'fig', small: true, src: 'zap-email-01-schedule.jpg?v=4', cap: 'Alarm clock goes off — Every day at 7:00 AM' },
+          { t: 'fig', small: true, src: 'zap-email-02-filter.jpg?v=4', cap: 'Checks the day — Is it Saturday or Sunday? If yes, stop. If no, keep going' },
+          { t: 'fig', small: true, src: 'zap-email-03-formatter.jpg?v=4', cap: 'Figures out yesterday\'s date — So it knows what to look for' },
+          { t: 'fig', small: true, src: 'zap-email-04-sheets.jpg?v=4', cap: 'It looks in the spreadsheet to find all rows where the price change date is yesterday and puts everything together to make one big email with all the houses.' },
+          { t: 'fig', small: true, src: 'zap-email-05-gmail.jpg?v=4', cap: 'It sends the finished briefing to the team inbox.' },
+
+          { t: 'h', v: 'What the real estate agents should see in their email' },
+          { t: 'fig', src: 'zap-email-output.jpg?v=4', cap: 'One email, every listing in it.' },
+
+          { t: 'h', v: 'Why this is useful' },
+          { t: 'ul', v: [
+            'The team does not have to check the spreadsheet themselves',
+            'They do not have to write the email themselves',
+            'They do not get emails on weekends',
+            'They get one email with everything, not ten separate emails',
+            'It just works every morning without anyone doing anything',
+          ]},
+        ],
+      },
+
+      {
+        badge: 'Automation case study',
+        tab: 'Snip to Document',
+        kicker: 'Google Apps Script · Gemini API',
+        thumb: 'snip-06-doc-output.jpg',
+        summary: 'Save a picture of a book page into a Drive folder and clean, formatted text appears in a Google Doc about a minute later. No retyping, and no cleaning up broken columns or hyphenated line breaks.',
+        stats: [['~1 min', 'image to formatted text'], ['$0', 'running cost'], ['no server', 'pure Apps Script']],
+        flow: ['Drop image in Drive', 'Gemini vision API', 'Formatted Google Doc'],
+        title: 'Snip to Document',
+        tagline: 'Built an automation that reads pictures of book pages and writes out clean, formatted text. Save an image to a folder, and the text appears in a Google Doc a minute later — no typing, no clean-up.',
+        meta: [
+          ['Tools used:', 'Google Apps Script, Gemini API, Drive & Docs APIs'],
+          ['What I did:', 'Wrote the script, the prompt, and the folder routing.'],
+        ],
+        tags: ['Workflow Automation', 'API Integration', 'Google Apps Script', 'AI Prompt Engineering', 'Error Handling'],
+        blocks: [
+          { t: 'h', v: 'The problem' },
+          { t: 'p', v: 'Converting scanned document pages into usable text meant manual retyping or copy-pasting output riddled with two-column artifacts, hyphenated line breaks, and page furniture. Slow, and error-prone at volume.' },
+
+          { t: 'h', v: 'The solution' },
+          { t: 'p', v: 'A Google Apps Script pipeline running on a one-minute timer:' },
+          { t: 'ul', v: [
+            'Watches a Drive folder, with subfolders routing to separate output Docs per project',
+            'Sends each image to Gemini\'s vision API with a prompt handling column order, hyphenation rejoining, paragraph merging, and header/footer removal',
+            'Appends formatted text to the matching Doc with an auto-generated page heading',
+            'Files processed images to an archive folder',
+          ]},
+          { t: 'sub', v: 'Stack' },
+          { t: 'p', v: 'Google Apps Script, Gemini API, Drive & Docs APIs, time-driven triggers, PropertiesService, LockService.' },
+          { t: 'sub', v: 'Result' },
+          { t: 'p', v: 'Fully automated, $0 running cost, no server. Handles batches in filename order and recovers from API outages without intervention.' },
+
+          { t: 'h', v: 'How the client experiences it' },
+          { t: 'p', v: 'You save a screenshot into a folder. A minute later, the text is typed out in a Google Doc, formatted like an article instead of a scan. That\'s the whole interaction.' },
+          { t: 'p', v: 'What it removes: retyping pages by hand, or pasting messy copy full of broken words, stray page numbers, and jumbled columns.' },
+          { t: 'p', v: 'Why it\'s useful: researchers, writers, and content teams pulling from printed sources get usable text without the manual clean-up. Costs nothing to run.' },
+
+          { t: 'h', v: 'The process' },
+          { t: 'fig', src: 'snip-01-source-page.jpg?v=4', cap: '1. Snip a page from the ebook. Save it based on what page you are on. It should look like "PAGE001.png".' },
+          { t: 'fig', src: 'snip-02-drive-pages-in.jpg?v=4', cap: '2. Open Drive → Pages In. Create a folder named after the ebook (only for a new book — skip if it already exists).' },
+          { t: 'fig', src: 'snip-03-upload.jpg?v=4', cap: '3. Open that folder and upload the snip into it. Wait about a minute.' },
+          { t: 'fig', src: 'snip-04-pages-done.jpg?v=4', cap: '4. Open Pages Done → the folder with the same book name. See your image sitting there — that\'s the signal it\'s been processed.' },
+          { t: 'fig', src: 'snip-05-transcripts-folder.jpg?v=4', cap: '5. Open Book Transcripts. Find the Google Doc named after your ebook, created automatically.' },
+          { t: 'fig', src: 'snip-06-doc-output.jpg?v=4', cap: '6. Open it — the transcribed text is inside.' },
+        ],
+      },
+    ];
+
+    const SOCIAL = [
+      { label: 'Email', value: 'Send a message', href: 'https://mail.google.com/mail/?view=cm&fs=1&to=mdanielleangelo@gmail.com', icon: 'https://cdn.simpleicons.org/gmail/EA4335' },
+      { label: 'Phone', value: '0991 864 2590', href: 'tel:09918642590', emoji: '📞' },
+      { label: 'Upwork', value: 'View profile', href: 'https://www.upwork.com/freelancers/~016f58b5fc0fb20890', icon: 'https://cdn.simpleicons.org/upwork/14A800' },
+      { label: 'OnlineJobs.ph', value: 'View profile', href: 'https://www.onlinejobs.ph/jobseekers/info/4781814', emoji: '💼' },
+      { label: 'LinkedIn', value: 'Connect', href: 'https://www.linkedin.com/in/danielle-angelo-malixi-427470390/', icon: 'https://api.iconify.design/logos:linkedin-icon.svg' },
+    ];
+
+    function Nav() {
+      const [active, setActive] = useState('home');
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const onScroll = () => {
+          setScrolled(window.scrollY > 30);
+          const pos = window.scrollY + 130;
+          for (const id of NAV) {
+            const el = document.getElementById(id);
+            if (el && el.offsetTop <= pos && el.offsetTop + el.offsetHeight > pos) { setActive(id); break; }
+          }
+        };
+        window.addEventListener('scroll', onScroll); onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
+      }, []);
+      return h('nav', { className: 'nav' + (scrolled ? ' scrolled' : '') },
+        h('div', { className: 'nav-inner' },
+          h('ul', { className: 'nav-links' },
+            NAV.map(item => h('li', { key: item },
+              h('a', { href: '#' + item, className: active === item ? 'active' : '' },
+                item.charAt(0).toUpperCase() + item.slice(1))
+            ))
+          )
+        )
+      );
+    }
+
+    function Hero() {
+      return h('section', { id: 'home', className: 'hero' },
+        h('div', { className: 'hero-grid' },
+          h('div', null,
+            h('div', { className: 'hero-tag' }, 'Available for work'),
+            h('h1', null,
+              'Hi, I\'m ',
+              h('span', { className: 'accent' }, 'Danielle'),
+              h('br'),
+              ' your next assistant.'
+            ),
+            h('p', { className: 'hero-role' },
+              'AI Automation Specialist · GoHighLevel · Workflow Automation'
+            ),
+            h('p', { className: 'hero-desc' },
+              'I build automation systems that answer leads in under a minute, chase the follow-ups nobody has time for, and put the right information in front of a team before anyone has to ask for it.'
+            ),
+            h('div', { className: 'hero-actions' },
+              h('a', { href: '#contact', className: 'btn btn-primary' }, 'Get in touch →'),
+              h('a', { href: '#portfolio', className: 'btn btn-ghost' }, 'See my work')
+            )
+          ),
+          h('div', { className: 'hero-photo-wrap' },
+            h('div', { className: 'hero-photo-deco' }),
+            h('img', { src: 'profile.jpg?v=4', alt: 'Danielle Angelo Malixi', className: 'hero-photo' })
+          )
+        )
+      );
+    }
+
+    function About() {
+      return h('section', { id: 'about', className: 'section section-alt' },
+        h('div', { className: 'wrap' },
+          h('div', { className: 'section-header' },
+            h('span', { className: 'section-eyebrow' }, 'About me'),
+            h('h2', { className: 'section-title' }, 'A little bit ', h('em', null, 'about who I am'))
+          ),
+          h('div', { className: 'about-grid' },
+            h('div', { className: 'about-text' },
+              h('p', null,
+                'I\'m a ', h('strong', null, 'Bachelor of Science in Information Technology'), ' student at STI College SJDM, and I build ', h('strong', null, 'automation systems for small businesses'), ' — CRM setups in GoHighLevel, and workflows that connect the tools a team already uses.'
+              ),
+              h('p', null,
+                'Most of my work comes down to the same thing: finding the part of someone\'s day that runs on remembering, and handing it to a system instead. A lead answered in under a minute. A follow-up that keeps going for eight days without anyone chasing it. A briefing that lands in Slack before the workday starts. I pay attention to the small decisions that keep those feeling human — knowing when a sequence should stop, and what a message should sound like when it does send.'
+              ),
+              h('p', null,
+                'Before this I spent a few years in administrative and social media work, which is where I learned what actually breaks in a small business\'s day. That background is why I build the way I do.'
+              ),
+              h('p', null,
+                'Currently open to ', h('strong', null, 'AI automation and GoHighLevel specialist roles'), ' — happy to start with a single workflow build or a short trial so you can see how I work.'
+              )
+            ),
+            h('div', { className: 'quickfacts' },
+              h('h4', null, 'Quick facts'),
+              h('div', { className: 'fact-row' },
+                h('span', { className: 'key' }, '📍 Location'),
+                h('span', { className: 'val' }, 'SJDM, Bulacan')
+              ),
+              h('div', { className: 'fact-row' },
+                h('span', { className: 'key' }, '💼 Open to'),
+                h('span', { className: 'val' }, 'Remote / freelance')
+              ),
+              h('div', { className: 'fact-row' },
+                h('span', { className: 'key' }, '🗣️ Languages'),
+                h('span', { className: 'val' }, 'English, Filipino')
+              ),
+              h('div', { className: 'fact-row' },
+                h('span', { className: 'key' }, '✅ Status'),
+                h('span', { className: 'val' }, 'Available now')
+              )
+            )
+          )
+        )
+      );
+    }
+
+    function TList(items) {
+      return h('div', { className: 'cards' },
+        items.map((t, i) =>
+          h('div', { className: 'card', key: i },
+            h('div', { className: 'card-head' },
+              h('h3', null, t.title),
+              h('span', { className: 'when' }, t.when)
+            ),
+            h('div', { className: 'where' }, t.where),
+            h('ul', null, t.bullets.map((b, j) => h('li', { key: j }, b)))
+          )
+        )
+      );
+    }
+
+    function Experience() {
+      return h('section', { id: 'experience', className: 'section' },
+        h('div', { className: 'wrap' },
+          h('div', { className: 'section-header' },
+            h('span', { className: 'section-eyebrow' }, 'My journey'),
+            h('h2', { className: 'section-title' }, 'Work ', h('em', null, 'experience'))
+          ),
+          TList(EXPERIENCE),
+          h('div', { className: 'section-header', style: { marginTop: '5rem' } },
+            h('span', { className: 'section-eyebrow' }, 'Education'),
+            h('h2', { className: 'section-title' }, 'What I\'m ', h('em', null, 'studying'))
+          ),
+          TList(EDUCATION)
+        )
+      );
+    }
+
+    function Skills() {
+      return h('section', { id: 'skills', className: 'section section-alt' },
+        h('div', { className: 'wrap' },
+          h('div', { className: 'section-header' },
+            h('span', { className: 'section-eyebrow' }, 'What I do' ),
+            h('h2', { className: 'section-title' }, 'Skills & ', h('em', null, 'services'))
+          ),
+          h('div', { className: 'skill-grid' },
+            SKILLS.map((s, i) =>
+              h('div', { className: 'skill-card', key: i },
+                h('div', { className: 'skill-icon' }, s.icon),
+                h('h4', null, s.title),
+                h('ul', null, s.items.map((x, j) => h('li', { key: j }, x)))
+              )
+            )
+          ),
+          h('div', { style: { marginTop: '4rem' } },
+            h('div', { className: 'block-label' }, 'Tools I work with'),
+            TOOLS.map((t, i) =>
+              h('div', { className: 'tool-row', key: i, style: { textAlign: 'center' } },
+                h('h4', null, t.group),
+                h('div', { className: 'chips', style: { justifyContent: 'center' } },
+                  t.items.map((x, j) =>
+                    h('span', { className: 'chip', key: j },
+                      x.icon
+                        ? h('img', { src: x.icon, className: 'chip-icon', alt: '', loading: 'lazy' })
+                        : h('span', { className: 'chip-letter', style: { background: x.bg } }, x.letter),
+                      x.name
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          h('div', { style: { marginTop: '4rem' } },
+            h('div', { className: 'block-label' }, 'Certifications & Training'),
+            h('div', { className: 'cert-grid' },
+              CERTS.map((c, i) =>
+                h('div', { className: 'cert', key: i },
+                  h('div', { className: 'cert-badge' }, c.icon),
+                  h('p', null, c.name)
+                )
+              )
+            )
+          )
+        )
+      );
+    }
+
+
+    const CATEGORIES = [
+      { key: 'ghl', label: 'GHL Systems' },
+      { key: 'auto', label: 'Automations' },
+      { key: 'design', label: 'Graphic Design' },
+      { key: 'sheets', label: 'Spreadsheets' },
+    ];
+
+    function Portfolio() {
+      const [cat, setCat] = useState('ghl');
+      const [open, setOpen] = useState(null);
+      const [box, setBox] = useState(null);
+
+      const stepImg = (d) => setBox(b => b && ({ items: b.items, i: (b.i + d + b.items.length) % b.items.length }));
+      const openBox = (items, i) => setBox({ items: items, i: i || 0 });
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (!box) return;
+          if (e.key === 'Escape') setBox(null);
+          if (e.key === 'ArrowRight') stepImg(1);
+          if (e.key === 'ArrowLeft') stepImg(-1);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [box]);
+
+      const block = (b, i) => {
+        if (b.t === 'h') return h('h4', { className: 'cs-h', key: i }, b.v);
+        if (b.t === 'sub') return h('div', { className: 'cs-sub', key: i }, b.v);
+        if (b.t === 'p') return h('p', { className: 'cs-p', key: i }, b.v);
+        if (b.t === 'code') return h('div', { className: 'cs-code', key: i }, b.v);
+        if (b.t === 'ul') return h('ul', { className: 'cs-ul', key: i }, b.v.map((x, j) => h('li', { key: j }, x)));
+        if (b.t === 'links') return h('div', { className: 'cs-links', key: i },
+          b.v.map((l, j) => h('a', { key: j, href: l.href, target: '_blank', rel: 'noopener',
+            className: 'btn ' + (j === 0 ? 'btn-primary' : 'btn-ghost') }, l.label)));
+        if (b.t === 'fig') return h('figure', { className: 'cs-fig' + (b.small ? ' small' : ''), key: i },
+          h('img', { src: b.src, alt: b.cap || '', loading: 'lazy', onClick: () => openBox([{ src: b.src, cap: b.cap }], 0) }),
+          b.cap ? h('figcaption', { className: 'cs-cap' }, b.cap) : null);
+        if (b.t === 'stack') return h('div', { className: 'cs-stack', key: i, onClick: () => openBox(b.v, 0) },
+          h('div', { className: 'cs-stack-layer l3' }),
+          h('div', { className: 'cs-stack-layer l2' }),
+          h('img', { src: b.v[0].src, alt: b.v[0].cap || '', loading: 'lazy' }),
+          h('span', { className: 'cs-stack-badge' }, '\u{1F5BC} ' + b.v.length + ' screenshots — click to view'));
+        return null;
+      };
+
+      const workCard = (c, i) => {
+        const isOpen = open === c.title;
+        return h('article', { className: 'work' + (isOpen ? ' open' : ''), key: i },
+          h('div', { className: 'work-thumb', onClick: () => openBox([{ src: c.thumb, cap: c.title }], 0) },
+            h('img', { src: c.thumb, alt: c.title, loading: 'lazy' })
+          ),
+          h('div', { className: 'work-body' },
+            h('div', null,
+              h('div', { className: 'work-kicker' }, c.kicker),
+              h('h3', { style: { marginTop: '0.35rem' } }, c.title)
+            ),
+            h('p', { className: 'work-sum' }, c.summary),
+            h('div', { className: 'work-stats' },
+              c.stats.map((st, j) => h('div', { className: 'work-stat', key: j },
+                h('b', null, st[0]), h('span', null, st[1])))
+            ),
+            h('div', { className: 'work-flow' },
+              c.flow.map((f, j) => h(F, { key: j },
+                j > 0 ? h('i', null, '→') : null,
+                h('span', null, f)))
+            ),
+            h('div', { className: 'cs-tags', style: { marginTop: 0 } },
+              c.tags.map((t, j) => h('span', { className: 'cs-tag', key: j }, t))
+            ),
+            h('button', { className: 'work-more', onClick: () => setOpen(isOpen ? null : c.title) },
+              isOpen ? '← Show less' : 'Read the full case study →'),
+            isOpen ? h('div', { className: 'work-full' },
+              c.blocks.map(block),
+              c.note ? h('p', { className: 'cs-note' }, c.note) : null
+            ) : null
+          )
+        );
+      };
+
+      const body = () => {
+        if (cat === 'ghl') return h('div', { className: 'work-grid' },
+          CASES.filter(c => c.featured).map(workCard));
+        if (cat === 'auto') return h('div', { className: 'work-grid' },
+          CASES.filter(c => !c.featured).map(workCard));
+        if (cat === 'design') return h('div', { className: 'portfolio-grid' },
+          DESIGNS.map((p, i) =>
+            h('div', { className: 'design-card', key: i, onClick: () => openBox([{ src: p.src, cap: p.title + ' — ' + p.category }], 0) },
+              h('div', { className: 'design-img-wrap' },
+                h('img', { src: p.src, alt: p.title, className: 'design-img', loading: 'lazy' })),
+              h('div', { className: 'design-info' }, h('h4', null, p.title), h('p', null, p.category))
+            )
+          ));
+        return h('div', { className: 'sheets-grid' },
+          SPREADSHEETS.map((sh, i) =>
+            h('div', { className: 'sheet-card', key: i },
+              h('div', { className: 'sheet-header' }, h('div', { className: 'sheet-icon' }, 'X'), h('h4', null, sh.title)),
+              h('div', { className: 'sheet-body' },
+                h('p', { className: 'sheet-desc' }, sh.desc),
+                h('div', { className: 'sheet-preview' },
+                  h('table', null,
+                    h('thead', null, h('tr', null, sh.preview.headers.map((x, j) => h('th', { key: j }, x)))),
+                    h('tbody', null, sh.preview.rows.map((row, j) =>
+                      h('tr', { key: j }, row.map((cell, k) => h('td', { key: k }, cell)))))
+                  )
+                ),
+                h('div', { className: 'sheet-tags' }, sh.tags.map((tg, j) => h('span', { className: 'sheet-tag', key: j }, tg))),
+                h('a', { href: sh.file, target: '_blank', rel: 'noopener', className: 'sheet-download' }, '📊 View Spreadsheet')
+              )
+            )
+          ));
+      };
+
+      const sub = {
+        ghl: 'A full CRM system built in GoHighLevel. Start with the summary — open the case study if you want the whole build.',
+        auto: 'Small automations that do one job well. Each card is the short version; open it for the full write-up, formulas and screenshots.',
+        design: 'Social media ads and promotional designs across food, fashion, e-commerce, and health products. Click any design to see it bigger.',
+        sheets: 'Data entry, formulas, pivot tables, and content planning. Click any card to open the live Google Sheet.',
+      };
+
+      return h(F, null,
+        h('section', { id: 'portfolio', className: 'section' },
+          h('div', { className: 'wrap' },
+            h('div', { className: 'section-header' },
+              h('span', { className: 'section-eyebrow' }, 'Portfolio'),
+              h('h2', { className: 'section-title' }, 'Selected ', h('em', null, 'work')),
+              h('p', { className: 'section-sub' }, sub[cat])
+            ),
+            h('div', { className: 'cs-tabs' },
+              CATEGORIES.map(ct =>
+                h('button', {
+                  key: ct.key,
+                  className: 'cs-tab' + (ct.key === cat ? ' on' : ''),
+                  onClick: () => {
+                    setCat(ct.key); setOpen(null);
+                    const el = document.getElementById('portfolio');
+                    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: 'smooth' });
+                  },
+                }, ct.label)
+              )
+            ),
+            body()
+          )
+        ),
+        box && h('div', { className: 'modal', onClick: () => setBox(null) },
+          h('button', { className: 'modal-close', onClick: () => setBox(null), 'aria-label': 'Close' }, '×'),
+          box.items.length > 1 && h('button', { className: 'modal-nav prev', 'aria-label': 'Previous',
+            onClick: (e) => { e.stopPropagation(); stepImg(-1); } }, '\u2039'),
+          box.items.length > 1 && h('button', { className: 'modal-nav next', 'aria-label': 'Next',
+            onClick: (e) => { e.stopPropagation(); stepImg(1); } }, '\u203A'),
+          h('div', { className: 'modal-fig', onClick: (e) => e.stopPropagation() },
+            h('img', { src: box.items[box.i].src, alt: box.items[box.i].cap || '' }),
+            box.items[box.i].cap ? h('p', { className: 'modal-cap' }, box.items[box.i].cap) : null,
+            box.items.length > 1 ? h('span', { className: 'modal-count' }, (box.i + 1) + ' / ' + box.items.length) : null
+          )
+        )
+      );
+    }
+
+    function Contact() {
+      return h('section', { id: 'contact', className: 'contact' },
+        h('span', { className: 'section-eyebrow' }, 'Let\'s connect'),
+        h('h2', null, 'Have a project ', h('em', null, 'in mind?')),
+        h('p', null, 'I\'d love to hear about it. Send me a message on any of the platforms below — I usually respond within a day.'),
+        h('div', { className: 'contact-grid' },
+          SOCIAL.map((s, i) =>
+            h('a', { href: s.href, target: s.href.startsWith('http') ? '_blank' : null, rel: 'noopener', className: 'social-btn', key: i },
+              s.icon
+                ? h('img', { src: s.icon, className: 'social-icon-img', alt: '' })
+                : h('span', { className: 'social-icon-emoji' }, s.emoji),
+              h('span', { className: 'label' }, s.label),
+              h('span', { className: 'value' }, s.value)
+            )
+          )
+        )
+      );
+    }
+
+    function App() {
+      return h(F, null,
+        h(Nav), h(Hero), h(About), h(Experience), h(Skills), h(Portfolio), h(Contact),
+        h('footer', { className: 'footer' },
+          '© 2026 Danielle Angelo Malixi · Built with ', h('span', null, 'React')
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+  </script>
+</body>
+</html>
